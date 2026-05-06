@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/proxy.js": {
-      "runtime": "nodejs@18.x",
+      "runtime": "nodejs18.x",
       "memory": 1024,
       "maxDuration": 300
     }
