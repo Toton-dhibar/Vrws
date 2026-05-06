@@ -1,34 +1,42 @@
+
+// WebSocket Relay para Vercel PRO
+// Endpoint: /api/ws
+
 export const config = {
-  runtime: "edge",
+  runtime: 'edge',
+  regions: ['iad1']
 };
 
-export default async function handler(req) {
-  const VPS_TARGET = process.env.VPS_TARGET_URL;
-  if (!VPS_TARGET) {
-    return new Response("VPS_TARGET_URL environment variable is not set", { status: 500 });
+export default async function handler(request) {
+  const upgradeHeader = request.headers.get('upgrade');
+  
+  if (upgradeHeader !== 'websocket') {
+    return new Response('Expected WebSocket', { status: 426 });
   }
-
-  const url = new URL(req.url);
-  const targetUrl = VPS_TARGET + url.pathname + url.search;
-
-  // WebSocket
-  if (req.headers.get("upgrade")?.toLowerCase() === "websocket") {
-    return fetch(targetUrl, {
-      method: req.method,
-      headers: req.headers,
-      body: req.body,
+  
+  const TARGET_WS_URL = process.env.TARGET_WS_URL || 'ws://zz.sdbuild.me:2052/vless';
+  const RELAY_PATH = process.env.WS_PATH || '/ws';
+  const url = new URL(request.url);
+  
+  if (url.pathname !== RELAY_PATH) {
+    return new Response('Not Found', { status: 404 });
+  }
+  
+  // Cria conexão WebSocket com o upstream
+  try {
+    const upgradeResponse = await fetch(TARGET_WS_URL, {
+      headers: {
+        upgrade: 'websocket',
+        connection: 'upgrade',
+        'sec-websocket-key': request.headers.get('sec-websocket-key'),
+        'sec-websocket-version': request.headers.get('sec-websocket-version')
+      }
     });
+    
+    return upgradeResponse;
+    
+  } catch (err) {
+    console.error('WebSocket error:', err.message);
+    return new Response('Bad Gateway', { status: 502 });
   }
-
-  // HTTP normal
-  const response = await fetch(targetUrl, {
-    method: req.method,
-    headers: req.headers,
-    body: req.method !== "GET" && req.method !== "HEAD" ? req.body : undefined,
-  });
-
-  return new Response(response.body, {
-    status: response.status,
-    headers: response.headers,
-  });
 }
