@@ -14,7 +14,7 @@ export default async function handler(request) {
     return new Response('Expected WebSocket', { status: 426 });
   }
   
-  const TARGET_WS_URL = process.env.TARGET_WS_URL || 'wss://zz.sdbuild.me:443/vless';
+  const TARGET_WS_URL = process.env.TARGET_WS_URL || 'wss://zz.sdbuild.me:443';
   const RELAY_PATH = process.env.WS_PATH || '/vless';
   const url = new URL(request.url);
   
