@@ -13,7 +13,10 @@ export default async function handler(request) {
     return new Response('Expected WebSocket', { status: 426 });
   }
   
-  const TARGET_WS_URL = process.env.TARGET_WS_URL || 'ws://zz.sdbuild.me:2052/ws';
+  const TARGET_WS_URL = process.env.TARGET_WS_URL;
+  if (!TARGET_WS_URL) {
+    return new Response('TARGET_WS_URL environment variable is not set', { status: 500 });
+  }
   const RELAY_PATH = process.env.WS_PATH || '/ws';
   const url = new URL(request.url);
   
